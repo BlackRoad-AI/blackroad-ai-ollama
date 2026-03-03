@@ -17,6 +17,8 @@ services:
     environment:
       - OLLAMA_HOST=0.0.0.0
       - BLACKROAD_MEMORY_ENABLED=true
+      - BLACKROAD_API_KEY=${BLACKROAD_API_KEY:-}
+      - BLACKROAD_MODEL_MAP=${BLACKROAD_MODEL_MAP:-}
     restart: unless-stopped
     deploy:
       resources:

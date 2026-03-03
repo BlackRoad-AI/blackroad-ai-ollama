@@ -104,15 +104,62 @@ This deploys to:
 
 ### BlackRoad Wrapper (Port 8001)
 - `GET /` - Service info
-- `GET /health` - Health check
+- `GET /health` - Health check (no auth required)
 - `GET /models` - List models
 - `POST /chat` - Chat with [MEMORY] integration
+
+### OpenAI-Compatible Proxy (Port 8001 · prefix `/v1`)
+
+Point **any** OpenAI SDK or tool at `http://<host>:8001/v1` and all traffic
+is served locally — no calls leave your infrastructure.
+
+```python
+import openai
+client = openai.OpenAI(
+    base_url="http://localhost:8001/v1",
+    api_key="<BLACKROAD_API_KEY>",   # or any string when auth is disabled
+)
+response = client.chat.completions.create(
+    model="gpt-4",          # auto-mapped → qwen2.5:7b
+    messages=[{"role": "user", "content": "Hello!"}],
+)
+```
+
+- `GET  /v1/models` - List models (OpenAI format)
+- `POST /v1/chat/completions` - Chat completions (OpenAI format)
+
+**Default model aliases** (overridable via `BLACKROAD_MODEL_MAP` env var):
+
+| OpenAI / Anthropic name | Local Ollama model |
+|---|---|
+| `gpt-4`, `gpt-4o` | `qwen2.5:7b` |
+| `gpt-4o-mini`, `claude-3-haiku-*` | `llama3.2:3b` |
+| `gpt-3.5-turbo` | `mistral:7b` |
+| `claude-3-opus-*`, `claude-3-5-sonnet-*` | `deepseek-r1:7b` |
 
 ### Ollama Direct (Port 11434)
 - `GET /api/tags` - List models
 - `POST /api/generate` - Generate completion
 - `POST /api/chat` - Chat completion
 - `POST /api/pull` - Pull new model
+
+## 🔒 Authentication (OAuth / API Key)
+
+Set the `BLACKROAD_API_KEY` environment variable to enable Bearer-token auth on
+all protected endpoints. When the variable is absent the server runs in
+open/LAN mode (suitable for Pi-local deployment behind Tailscale/Cloudflare).
+
+```bash
+# Enable auth
+export BLACKROAD_API_KEY="$(python3 -c 'import secrets; print(secrets.token_urlsafe(32))')"
+docker-compose up -d
+```
+
+Clients send the key as a standard Bearer token:
+
+```
+Authorization: Bearer <BLACKROAD_API_KEY>
+```
 
 ## 🎨 Models You Can Add
 
