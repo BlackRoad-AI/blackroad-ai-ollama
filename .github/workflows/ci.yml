@@ -11,7 +11,7 @@ jobs:
     name: Lint & Test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Detect project type
         id: detect
@@ -64,7 +64,7 @@ jobs:
     runs-on: ubuntu-latest
     if: contains(github.repository, 'blackroad')
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: actions/setup-node@v4
         with: { node-version: '20' }
       - run: npm ci 2>/dev/null || true
