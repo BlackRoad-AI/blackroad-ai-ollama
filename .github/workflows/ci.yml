@@ -24,7 +24,7 @@ jobs:
           fi
 
       # Node.js
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         if: steps.detect.outputs.type == 'node' || steps.detect.outputs.type == 'worker'
         with: { node-version: '20', cache: 'npm' }
       - run: npm ci
@@ -65,7 +65,7 @@ jobs:
     if: contains(github.repository, 'blackroad')
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with: { node-version: '20' }
       - run: npm ci 2>/dev/null || true
       - run: npx tsc --noEmit 2>/dev/null || echo "No TypeScript config"
