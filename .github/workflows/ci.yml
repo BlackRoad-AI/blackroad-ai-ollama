@@ -49,7 +49,7 @@ jobs:
         continue-on-error: true
 
       # Go
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v6
         if: steps.detect.outputs.type == 'go'
         with: { go-version: '1.22' }
       - run: go build ./... && go test ./...
