@@ -13,13 +13,57 @@ on:
 jobs:
   blackroad-agent:
     runs-on: ubuntu-latest
-    if: contains(github.event.comment.body, '@blackroad') || contains(github.event.issue.body, '@blackroad') || contains(github.event.pull_request.body, '@blackroad')
+    # Trigger on all known aliases — all are routed to local Ollama
+    if: |
+      contains(github.event.comment.body, '@blackroad') ||
+      contains(github.event.comment.body, '@copilot') ||
+      contains(github.event.comment.body, '@lucidia') ||
+      contains(github.event.comment.body, '@blackboxprogramming') ||
+      contains(github.event.comment.body, '@ollama') ||
+      contains(github.event.issue.body, '@blackroad') ||
+      contains(github.event.issue.body, '@copilot') ||
+      contains(github.event.issue.body, '@lucidia') ||
+      contains(github.event.issue.body, '@blackboxprogramming') ||
+      contains(github.event.issue.body, '@ollama') ||
+      contains(github.event.pull_request.body, '@blackroad') ||
+      contains(github.event.pull_request.body, '@copilot') ||
+      contains(github.event.pull_request.body, '@lucidia') ||
+      contains(github.event.pull_request.body, '@blackboxprogramming') ||
+      contains(github.event.pull_request.body, '@ollama')
 
     steps:
-      - name: Trigger BlackRoad Agent
+      - name: Resolve mention body
+        id: body
         run: |
-          echo "🤖 BlackRoad agent trigger detected"
-          echo "Organization: ${{ github.repository_owner }}"
-          echo "Repository: ${{ github.event.repository.name }}"
-          echo "Issue/PR: ${{ github.event.issue.number || github.event.pull_request.number }}"
-          # Webhook to be added: POST to blackroad-github-webhook.workers.dev
+          BODY="${{ github.event.comment.body || github.event.issue.body || github.event.pull_request.body }}"
+          echo "text=${BODY}" >> $GITHUB_OUTPUT
+
+      - name: Route mention to Ollama via BlackRoad webhook
+        env:
+          BLACKROAD_WEBHOOK_URL: ${{ secrets.BLACKROAD_WEBHOOK_URL }}
+        run: |
+          echo "🤖 Alias mention detected — routing to local Ollama (no external AI providers)"
+          echo "Repository : ${{ github.repository }}"
+          echo "Event      : ${{ github.event_name }}"
+          echo "Number     : ${{ github.event.issue.number || github.event.pull_request.number }}"
+
+          if [ -z "$BLACKROAD_WEBHOOK_URL" ]; then
+            echo "⚠ BLACKROAD_WEBHOOK_URL not set — skipping webhook call"
+            exit 0
+          fi
+
+          HTTP_CODE=$(curl -s -o /tmp/ollama_response.json -w "%{http_code}" \
+            -X POST "$BLACKROAD_WEBHOOK_URL/mention" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "body": ${{ toJSON(steps.body.outputs.text) }},
+              "model": "qwen2.5:7b",
+              "session_id": "${{ github.repository }}-${{ github.event.issue.number || github.event.pull_request.number }}"
+            }')
+          if [ "$HTTP_CODE" -ge 200 ] && [ "$HTTP_CODE" -lt 300 ]; then
+            echo "✅ Routed to Ollama (HTTP $HTTP_CODE)"
+          else
+            echo "⚠ Webhook returned HTTP $HTTP_CODE — Ollama may not be reachable"
+            cat /tmp/ollama_response.json || true
+          fi
+
