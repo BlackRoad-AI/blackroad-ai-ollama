@@ -16,7 +16,6 @@ services:
       - /Users/alexa:/host-home:ro
     environment:
       - OLLAMA_HOST=0.0.0.0
-      - OLLAMA_URL=http://localhost:11434
       - BLACKROAD_MEMORY_ENABLED=true
     restart: unless-stopped
     deploy:
