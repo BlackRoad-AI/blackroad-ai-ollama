@@ -1,5 +1,13 @@
 # blackroad-ai-ollama
 
+> Ollama runtime for BlackRoad AI model orchestration. Proprietary BlackRoad integration.
+
+Part of the [BlackRoad OS](https://blackroad.io) ecosystem — [BlackRoad-AI](https://github.com/BlackRoad-AI)
+
+---
+
+# blackroad-ai-ollama
+
 Ollama runtime for BlackRoad AI model orchestration. Proprietary BlackRoad integration.
 
 **BlackRoad-AI** — AI — models, inference, agents
